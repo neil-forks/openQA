@@ -1,0 +1,19 @@
+---
+selectorLabels:
+  peridot.rockylinux.org/workflow-tolerates-arch: s390x
+  ops.resf.org/workflow-purpose: openqa
+
+openqa:
+  host: openqa.host
+  key: ""
+  secret: ""
+
+cacheService: true
+cacheLimit: 50
+
+workerClass: qemu_s390x,kubernetes
+
+image:
+  name: git.resf.org/testing/openqa-worker
+  pullPolicy: Always
+  tag: "latest"

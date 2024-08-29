@@ -18,9 +18,14 @@ data:
     CACHEWORKERS = 1
 
     [{{ .Values.openqa.host }}]
-    TESTPOOLSERVER = rsync://{{ .Values.openqa.host }}/tests
+    #TESTPOOLSERVER = rsync://{{ .Values.openqa.host }}/tests
+    TESTPOOLSERVER = rsync://3.23.132.38/tests
     {{ end }}
   client_conf: |
     [{{ .Values.openqa.host }}]
     key = {{ .Values.openqa.key }}
     secret = {{ .Values.openqa.secret }}
+  resolvconf: |
+    nameserver 1.1.1.1
+    search openqa.svc.cluster.openqa.k8s-extarch.kpou2.rockylinux.org svc.cluster.local
+    options ndots:7

@@ -17,6 +17,16 @@ spec:
         {{- include "worker.selectorLabels" . | nindent 8 }}
     spec:
       # Future enhancement option: initContainer for git-pulling tests into /data
+      subdomain: "openqa-k8s-kpou2-rockylinux-org"
+      tolerations:
+        - key: "peridot.rockylinux.org/workflow-tolerates-arch"
+          value: s390x
+          operator: "Equal"
+          effect: "NoSchedule"
+        - key: "ops.resf.org/workflow-purpose"
+          value: openqa
+          operator: "Equal"
+          effect: "NoSchedule"
       containers:
         {{ if .Values.cacheService -}}
         - name: {{ include "worker.fullname" . }}-cacheservice
@@ -30,6 +40,9 @@ spec:
             - name: config
               mountPath: /data/conf
               readOnly: true
+            - name: resolvconf
+              mountPath: /etc/resolv.conf
+              readOnly: true
         - name: {{ include "worker.fullname" . }}-cacheservice-minion
           image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -41,11 +54,14 @@ spec:
             - name: config
               mountPath: /data/conf
               readOnly: true
+            - name: resolvconf
+              mountPath: /etc/resolv.conf
+              readOnly: true
         {{ end -}}
         - name: {{ include "worker.fullname" . }}
           env:
             - name: qemu_no_kvm
-              value: "1"
+              value: "0"
           image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
@@ -64,6 +80,15 @@ spec:
             - name: config
               mountPath: /data/conf
               readOnly: true
+            - name: resolvconf
+              mountPath: /etc/resolv.conf
+              readOnly: true
+      nodeSelector:
+        {{- if .Values.selectorLabels }}
+        {{- range $key, $value := .Values.selectorLabels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+        {{- end }}
       restartPolicy: Always
       volumes:
         {{ if .Values.cacheService -}}
@@ -76,6 +101,9 @@ spec:
         - name: tests
           emptyDir: {}
         {{ end -}}
+        - name: resolvconf
+          hostPath:
+            path: /etc/resolv.conf
         - name: config
           configMap:
             name: {{ include "worker.fullname" . }}-configmap
